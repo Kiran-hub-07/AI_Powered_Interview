@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Interview Platform</title>
+<link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap)" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#080c14;--surface:#0d1422;--surface2:#111827;--border:#1e2d45;
+  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#475569;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.screen{display:none;position:relative;z-index:1;}
+.screen.active{display:block;}
+
+/* ===== SETUP ===== */
+#setup-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;}
+#setup-screen.active{display:flex;}
+.logo{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:var(--accent);margin-bottom:40px;opacity:0;animation:fadeUp .6s forwards .1s;}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.4rem);font-weight:800;text-align:center;line-height:1.15;margin-bottom:14px;opacity:0;animation:fadeUp .6s forwards .25s;}
+.hero-title span{color:var(--accent);}
+.hero-sub{font-size:15px;color:var(--text2);text-align:center;max-width:480px;line-height:1.7;margin-bottom:40px;opacity:0;animation:fadeUp .6s forwards .4s;}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;width:100%;max-width:640px;opacity:0;animation:fadeUp .6s forwards .55s;}
+.setup-card h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:24px;}
+.field{margin-bottom:20px;}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.field textarea,.field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;transition:border-color .2s,box-shadow .2s;outline:none;}
+.field textarea:focus,.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.08);}
+.field textarea{min-height:100px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.resume-tabs{display:flex;gap:0;margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.resume-tab{flex:1;padding:9px;background:transparent;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:background .2s,color .2s;}
+.resume-tab.active{background:var(--accent);color:#fff;font-weight:600;}
+#resume-upload-area{display:none;border:2px dashed var(--border);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;}
+#resume-upload-area:hover{border-color:var(--accent);}
+#resume-upload-area .upload-icon{font-size:28px;margin-bottom:8px;}
+#resume-upload-area p{font-size:13px;color:var(--text2);}
+#resume-upload-area .file-chosen{font-size:12px;color:var(--accent);margin-top:6px;}
+#resume-file{display:none;}
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;color:#fff;cursor:pointer;margin-top:8px;transition:opacity .2s,transform .15s;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* ===== MODE MODAL ===== */
+#mode-modal{display:none;position:fixed;inset:0;background:rgba(8,12,20,.9);backdrop-filter:blur(12px);z-index:200;align-items:center;justify-content:center;}
+#mode-modal.active{display:flex;}
+.mode-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px 36px;max-width:620px;width:94%;text-align:center;}
+.mode-box h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;}
+.mode-box p{color:var(--text2);font-size:14px;margin-bottom:28px;line-height:1.6;}
+.mode-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
+.mode-card{background:var(--bg);border:2px solid var(--border);border-radius:14px;padding:22px 16px;cursor:pointer;transition:border-color .2s,transform .15s;text-align:center;}
+.mode-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.mode-card .mode-icon{font-size:32px;margin-bottom:12px;}
+.mode-card h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:6px;}
+.mode-card p{font-size:12px;color:var(--text2);line-height:1.5;}
+
+/* ===== INTERVIEW ===== */
+#interview-screen{min-height:100vh;padding:0;}
+#interview-screen.active{display:flex;flex-direction:column;}
+.interview-header{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;}
+.interview-header .logo-sm{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:4px;color:var(--accent);text-transform:uppercase;}
+.hdr-meta{display:flex;align-items:center;gap:16px;}
+.q-counter{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);}
+.timer-wrap{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;}
+.timer-dot{width:7px;height:7px;border-radius:50%;background:var(--accent3);animation:pulse 1s infinite;}
+.timer-dot.warn{background:var(--warn);}
+.timer-dot.danger{background:var(--danger);}
+#timer-display{font-size:18px;font-weight:500;color:var(--text);}
+.interview-body{flex:1;display:grid;grid-template-columns:300px 1fr;min-height:0;}
+@media(max-width:768px){.interview-body{grid-template-columns:1fr;}.sidebar{display:none;}}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:22px;overflow-y:auto;display:flex;flex-direction:column;gap:18px;}
+.sidebar-section h4{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.progress-bar-wrap{background:var(--bg);border-radius:4px;height:6px;overflow:hidden;}
+.progress-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s ease;}
+.mode-badge{padding:4px 12px;border-radius:100px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:1px;background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3);}
+.q-history{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;}
+.q-hist-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:12px;}
+.q-hist-item .num{font-family:'DM Mono',monospace;color:var(--text3);min-width:18px;}
+.q-hist-item .qt{color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* AI Speaking Indicator */
+.ai-speaking-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:10px;margin-bottom:12px;}
+.ai-speaking-bar.active{display:flex;}
+.ai-speaking-bar .speak-label{font-size:12px;color:var(--accent);font-family:'DM Mono',monospace;}
+.speak-waves{display:flex;align-items:center;gap:3px;height:18px;}
+.speak-waves span{display:inline-block;width:3px;border-radius:2px;background:var(--accent);animation:wave 0.8s ease-in-out infinite;}
+.speak-waves span:nth-child(1){animation-delay:0s;}
+.speak-waves span:nth-child(2){animation-delay:0.1s;}
+.speak-waves span:nth-child(3){animation-delay:0.2s;}
+.speak-waves span:nth-child(4){animation-delay:0.3s;}
+.speak-waves span:nth-child(5){animation-delay:0.4s;}
+
+.main-panel{display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
+.chat-area{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;}
+.msg{display:flex;gap:12px;align-items:flex-start;opacity:0;animation:fadeUp .4s forwards;}
+.msg.user{flex-direction:row-reverse;}
+.avatar{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.avatar.ai-av{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Syne',sans-serif;}
+.avatar.user-av{background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-family:'Syne',sans-serif;}
+.bubble{max-width:78%;padding:13px 16px;border-radius:14px;font-size:14px;line-height:1.7;}
+.msg.ai .bubble{background:var(--surface);border:1px solid var(--border);border-top-left-radius:4px;}
+.msg.user .bubble{background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(124,58,237,.12));border:1px solid rgba(0,212,255,.2);border-top-right-radius:4px;}
+.bubble .q-type-tag{display:inline-block;margin-bottom:6px;padding:2px 10px;border-radius:100px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;background:rgba(0,212,255,.12);color:var(--accent);}
+
+/* Voice UI */
+.mic-btn{width:56px;height:56px;border-radius:50%;border:2px solid var(--border);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.mic-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.mic-btn.listening{background:rgba(239,68,68,.15);border-color:var(--danger);animation:micPulse 1s infinite;}
+.mic-btn svg{width:22px;height:22px;fill:var(--text2);}
+.mic-btn.listening svg{fill:var(--danger);}
+.voice-status{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;color:var(--text2);min-height:50px;display:flex;align-items:center;}
+.voice-wave{display:none;align-items:center;gap:3px;height:20px;margin-left:8px;}
+.mic-btn.listening ~ .voice-status .voice-wave{display:flex;}
+.voice-wave span{display:inline-block;width:3px;height:6px;border-radius:2px;background:var(--danger);}
+.voice-wave span:nth-child(1){animation:wave 1s infinite 0s;}
+.voice-wave span:nth-child(2){animation:wave 1s infinite 0.15s;}
+.voice-wave span:nth-child(3){animation:wave 1s infinite 0.3s;}
+.voice-wave span:nth-child(4){animation:wave 1s infinite 0.45s;}
+
+.input-area{padding:16px 28px 20px;background:var(--surface);border-top:1px solid var(--border);}
+.input-wrap{display:flex;gap:10px;align-items:flex-end;}
+#answer-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:13px 15px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:none;outline:none;min-height:50px;max-height:140px;transition:border-color .2s;line-height:1.6;}
+#answer-input:focus{border-color:var(--accent);}
+.send-btn{width:50px;height:50px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .2s,transform .15s;}
+.send-btn:hover{opacity:.85;transform:scale(1.04);}
+.send-btn svg{width:18px;height:18px;fill:white;}
+.input-hint{font-size:11px;color:var(--text3);margin-top:7px;display:flex;justify-content:space-between;}
+
+/* ===== RESULTS ===== */
+#results-screen{min-height:100vh;padding:0 0 60px;}
+.results-inner{max-width:900px;margin:0 auto;padding:40px 20px;}
+.results-header{text-align:center;margin-bottom:40px;}
+.results-header .tag{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.results-header h1{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;margin-bottom:6px;}
+.score-hero{display:grid;grid-template-columns:200px 1fr;gap:28px;margin-bottom:28px;}
+@media(max-width:600px){.score-hero{grid-template-columns:1fr;}}
+.readiness-ring-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 20px;}
+.readiness-ring{width:150px;height:150px;position:relative;margin-bottom:12px;}
+.readiness-ring svg{transform:rotate(-90deg);}
+.readiness-ring .ring-track{fill:none;stroke:var(--border);stroke-width:10;}
+.readiness-ring .ring-fill{fill:none;stroke:url(#ringGrad);stroke-width:10;stroke-linecap:round;stroke-dasharray:408;stroke-dashoffset:408;transition:stroke-dashoffset 1.6s ease;}
+.ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-label .big{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;}
+.ring-label .small{font-size:14px;color:var(--text3);}
+.readiness-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;padding:5px 16px;border-radius:100px;}
+.rl-strong{background:rgba(16,185,129,.15);color:var(--accent3);border:1px solid rgba(16,185,129,.3);}
+.rl-mid{background:rgba(245,158,11,.15);color:var(--warn);border:1px solid rgba(245,158,11,.3);}
+.rl-improve{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);}
+.dim-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.dim-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.dim-card .dim-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.dim-card .dim-name{font-size:12px;color:var(--text2);text-transform:uppercase;}
+.dim-card .dim-val{font-family:'DM Mono',monospace;font-size:22px;}
+.dim-bar-bg{background:var(--bg);border-radius:4px;height:6px;overflow:hidden;}
+.dim-bar{height:100%;border-radius:4px;}
+.feedback-block{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;}
+.feedback-block h4{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;}
+#final-feedback-text{font-size:14px;line-height:1.9;color:var(--text2);}
+.qa-breakdown{margin-top:20px;}
+.qa-breakdown h4{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
+.qa-item .qa-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:12px;}
+.qa-item .qa-q{font-size:13px;font-weight:500;flex:1;}
+.qa-item .qa-score{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;white-space:nowrap;}
+.qa-item .qa-a{font-size:12px;color:var(--text2);padding:10px 12px;background:var(--bg);border-radius:8px;margin-bottom:8px;line-height:1.6;}
+.qa-item .qa-fb{font-size:12px;color:var(--text3);font-style:italic;line-height:1.6;}
+.score-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;margin-right:6px;text-transform:uppercase;letter-spacing:1px;}
+.restart-btn{display:block;width:100%;padding:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer;margin-top:24px;}
+.restart-btn:hover{opacity:.9;}
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(8,12,20,.88);backdrop-filter:blur(10px);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:18px;}
+.loading-overlay.active{display:flex;}
+.spinner{width:44px;height:44px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin .8s linear infinite;}
+.loading-overlay p{color:var(--text2);font-size:14px;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 18px;font-size:13px;z-index:400;transition:transform .3s ease;max-width:340px;text-align:center;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
+@keyframes wave{0%,100%{height:4px}50%{height:20px}}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" class="screen active">
+  <div class="logo">AI-Powered Interview</div>
+  <h1 class="hero-title"><span>AI-Powered</span> Interview<br/>Platform</h1>
+  <p class="hero-sub">Upload your resume, add the target Job Description, and start your realistic AI-voiced interview experience.</p>
+  <div class="setup-card">
+    <h3>Configuration Panel</h3>
+    <div class="field">
+      <label>Your Resume</label>
+      <div class="resume-tabs">
+        <button class="resume-tab active" id="tab-text" type="button">📝 Paste Text</button>
+        <button class="resume-tab" id="tab-upload" type="button">📎 Upload File</button>
+      </div>
+      <textarea id="resume-text" placeholder="Paste your complete resume here including work experience, skills, education, projects, certifications..."></textarea>
+      <div id="resume-upload-area">
+        <div class="upload-icon">📄</div>
+        <p>Click to choose a text file (.txt)</p>
+        <div class="file-chosen" id="file-chosen-label"></div>
+      </div>
+      <input type="file" id="resume-file" accept=".txt"/>
+    </div>
+    <div class="field">
+      <label>Job Description (JD)</label>
+      <textarea id="jd-input" placeholder="Paste the complete job requirements, responsibilities, qualifications, and skills needed..."></textarea>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Role Title</label>
+        <input type="text" id="role-input" placeholder="e.g. Software Engineer"/>
+      </div>
+      <div class="field">
+        <label>Questions Count</label>
+        <select id="num-q-input">
+          <option value="5" selected>5 Questions</option>
+          <option value="8">8 Questions</option>
+          <option value="10">10 Questions</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Time per question</label>
+      <select id="time-limit-input">
+        <option value="90">90 seconds</option>
+        <option value="120" selected>2 minutes</option>
+        <option value="180">3 minutes</option>
+      </select>
+    </div>
+    <button class="btn-primary" id="open-modes-btn">Select Interview Mode →</button>
+  </div>
+</div>
+
+<!-- MODE MODAL -->
+<div id="mode-modal">
+  <div class="mode-box">
+    <h2>Choose Your Interview Mode</h2>
+    <p>Text mode is silent. Voice modes have the AI interviewer <strong>speak every question aloud</strong> for a realistic experience.</p>
+    <div class="mode-cards">
+      <div class="mode-card" data-mode="text">
+        <div class="mode-icon">⌨️</div>
+        <h3>Text Interview</h3>
+        <p>Read questions and type your responses. Silent mode.</p>
+      </div>
+      <div class="mode-card" data-mode="voice-text">
+        <div class="mode-icon">🎙️</div>
+        <h3>Voice + Typing</h3>
+        <p>AI speaks the question. You speak, review, then submit.</p>
+      </div>
+      <div class="mode-card" data-mode="voice-speaking">
+        <div class="mode-icon">🗣️</div>
+        <h3>Full Voice</h3>
+        <p>Hands-free. AI speaks, you speak, auto-submits.</p>
+      </div>
+    </div>
+    <button class="btn-primary" style="margin-top:20px;width:auto;padding:10px 24px;background:var(--surface2);border:1px solid var(--border);" id="cancel-mode-btn">Cancel</button>
+  </div>
+</div>
+
+<!-- INTERVIEW SCREEN -->
+<div id="interview-screen" class="screen">
+  <header class="interview-header">
+    <div class="logo-sm">AI Interview</div>
+    <div class="hdr-meta">
+      <span class="q-counter" id="q-counter-display">Question 1 of 5</span>
+      <div class="timer-wrap">
+        <div class="timer-dot" id="timer-dot"></div>
+        <span id="timer-display">02:00</span>
+      </div>
+    </div>
+  </header>
+  <div class="interview-body">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <h4>Progress</h4>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="interview-progress" style="width:0%"></div></div>
+      </div>
+      <div class="sidebar-section">
+        <h4>Target Role</h4>
+        <div class="mode-badge" id="sidebar-role-badge">Role</div>
+      </div>
+      <div class="sidebar-section">
+        <h4>Mode</h4>
+        <div class="mode-badge" id="sidebar-mode-badge" style="background:rgba(0,212,255,.1);color:var(--accent);border-color:rgba(0,212,255,.2)">TEXT</div>
+      </div>
+      <div class="sidebar-section">
+        <h4>Question History</h4>
+        <div class="q-history" id="history-container"></div>
+      </div>
+    </div>
+
+    <div class="main-panel">
+      <div class="chat-area" id="chat-container"></div>
+
+      <div class="input-area">
+        <div class="ai-speaking-bar" id="ai-speaking-bar">
+          <div class="speak-waves">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <span class="speak-label">AI Interviewer is speaking...</span>
+        </div>
+
+        <!-- Text input layout -->
+        <div class="input-wrap" id="text-input-layout">
+          <textarea id="answer-input" placeholder="Type your response here..."></textarea>
+          <button class="send-btn" id="send-btn" type="button">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </div>
+
+        <!-- Voice input layout -->
+        <div class="input-wrap" id="voice-input-layout" style="display:none;">
+          <button class="mic-btn" id="mic-toggle-btn" type="button">
+            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.72V21h2v-3.28c3.28-.52 6-3.3 6-6.72h-1.7z"/></svg>
+          </button>
+          <div class="voice-status" id="voice-status-bar">
+            <span id="voice-status-text">Click the mic to start recording...</span>
+            <div class="voice-wave"><span></span><span></span><span></span><span></span></div>
+          </div>
+          <button class="send-btn" id="voice-submit-btn" type="button" style="width:auto;padding:0 18px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;display:none;">SUBMIT</button>
+        </div>
+
+        <div class="input-hint">
+          <span id="input-mode-hint-text">Press Enter to submit</span>
+          <span id="char-count">0 chars</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results-screen" class="screen">
+  <div class="results-inner">
+    <div class="results-header">
+      <div class="tag">Evaluation Complete</div>
+      <h1>Interview Score Card</h1>
+    </div>
+    <div class="score-hero">
+      <div class="readiness-ring-wrap">
+        <div class="readiness-ring">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#00d4ff"/>
+                <stop offset="100%" style="stop-color:#7c3aed"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="75" cy="75" r="65"></circle>
+            <circle class="ring-fill" id="results-ring-fill" cx="75" cy="75" r="65"></circle>
+          </svg>
+          <div class="ring-label">
+            <span class="big" id="final-score-big">0</span>
+            <span class="small">/100</span>
+          </div>
+        </div>
+        <div class="readiness-label" id="readiness-badge">Analyzing...</div>
+      </div>
+      <div class="dim-cards">
+        <div class="dim-card">
+          <div class="dim-top"><span class="dim-name">Job Alignment</span><span class="dim-val" id="dim-alignment-val">0%</span></div>
+          <div class="dim-bar-bg"><div class="dim-bar" id="dim-alignment-bar" style="width:0%;background:var(--accent)"></div></div>
+        </div>
+        <div class="dim-card">
+          <div class="dim-top"><span class="dim-name">Relevance</span><span class="dim-val" id="dim-relevancy-val">0%</span></div>
+          <div class="dim-bar-bg"><div class="dim-bar" id="dim-relevancy-bar" style="width:0%;background:var(--accent2)"></div></div>
+        </div>
+        <div class="dim-card">
+          <div class="dim-top"><span class="dim-name">Depth</span><span class="dim-val" id="dim-depth-val">0%</span></div>
+          <div class="dim-bar-bg"><div class="dim-bar" id="dim-depth-bar" style="width:0%;background:var(--accent3)"></div></div>
+        </div>
+        <div class="dim-card">
+          <div class="dim-top"><span class="dim-name">Clarity</span><span class="dim-val" id="dim-clarity-val">0%</span></div>
+          <div class="dim-bar-bg"><div class="dim-bar" id="dim-clarity-bar" style="width:0%;background:var(--warn)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback-block">
+      <h4>Overall Evaluation</h4>
+      <div id="final-feedback-text"></div>
+    </div>
+    <div class="qa-breakdown">
+      <h4>Per-Question Breakdown</h4>
+      <div id="qa-breakdown-list"></div>
+    </div>
+    <button class="restart-btn" id="restart-btn">Start New Session</button>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loading-layer">
+  <div class="spinner"></div>
+  <p id="loading-text">Generating tailored questions...</p>
+</div>
+<div class="toast" id="toast-notify"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ============================================================
+  // STATE
+  // ============================================================
+  const config = {
+    resume: "",
+    jd: "",
+    role: "",
+    totalQuestions: 5,
+    timeLimit: 120,
+    mode: "text"
+  };
+
+  const session = {
+    questions: [],
+    questionTypes: [],
+    answers: [],
+    currentIndex: 0,
+    timerInterval: null,
+    timeLeft: 120,
+    parsedResume: null,
+    parsedJD: null
+  };
+
+  let speechRecognition = null;
+  let isListening = false;
+  let spokenBuffer = "";
+  let isSpeaking = false;
+  let voicesLoaded = false;
+
+  // ============================================================
+  // DOM ELEMENTS
+  // ============================================================
+  const $ = id => document.getElementById(id);
+
+  // ============================================================
+  // TEXT-TO-SPEECH ENGINE
+  // ============================================================
+  function loadVoices() {
+    return new Promise(resolve => {
+      if (!window.speechSynthesis) {
+        resolve([]);
+        return;
+      }
+      let voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        voicesLoaded = true;
+        resolve(voices);
+        return;
+      }
+      window.speechSynthesis.onvoiceschanged = () => {
+        voices = window.speechSynthesis.getVoices();
+        voicesLoaded = true;
+        resolve(voices);
+      };
+      setTimeout(() => resolve(window.speechSynthesis.getVoices()), 500);
+    });
+  }
+
+  async function speakText(text, onDone) {
+    if (!window.speechSynthesis) {
+      if (onDone) onDone();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    isSpeaking = true;
+    $('ai-speaking-bar').classList.add('active');
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 0.95;
+    utter.pitch = 1.0;
+    utter.volume = 1;
+
+    if (!voicesLoaded) {
+      await loadVoices();
+    }
+
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v =>
+      /en-US|en-GB/i.test(v.lang) &&
+      /google|natural|premium|samantha|daniel|karen|moira|zira|david/i.test(v.name)
+    ) || voices.find(v => /en/i.test(v.lang)) || voices[0];
+
+    if (preferred) utter.voice = preferred;
+
+    utter.onend = () => {
+      isSpeaking = false;
+      $('ai-speaking-bar').classList.remove('active');
+      if (onDone) onDone();
+    };
+
+    utter.onerror = () => {
+      isSpeaking = false;
+      $('ai-speaking-bar').classList.remove('active');
+      if (onDone) onDone();
+    };
+
+    window.speechSynthesis.speak(utter);
+  }
+
+  function stopSpeaking() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    isSpeaking = false;
+    $('ai-speaking-bar').classList.remove('active');
+  }
+
+  // ============================================================
+  // DEEP RESUME & JD PARSER
+  // ============================================================
+  function parseResumeDeep(text) {
+    const lower = text.toLowerCase();
+    const result = {
+      name: "",
+      email: "",
+      phone: "",
+      skills: [],
+      tools: [],
+      experience: [],
+      education: [],
+      certifications: [],
+      projects: [],
+      achievements: [],
+      yearsExp: null,
+      companies: [],
+      jobTitles: []
+    };
+
+    // Extract email
+    const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/);
+    if (emailMatch) result.email = emailMatch[0];
+
+    // Extract phone
+    const phoneMatch = text.match(/(\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/);
+    if (phoneMatch) result.phone = phoneMatch[0];
+
+    // Extract years of experience
+    const expPatterns = [
+      /(\d+)\+?\s*(?:years?|yrs?)\s*(?:of\s*)?(?:experience|exp)/gi,
+      /experience\s*(?:of\s*)?(\d+)\+?\s*(?:years?|yrs?)/gi
+    ];
+    for (const pattern of expPatterns) {
+      const match = pattern.exec(lower);
+      if (match) {
+        result.yearsExp = parseInt(match[1], 10);
+        break;
+      }
+    }
+
+    // Technical tools and software
+    const toolPatterns = [
+      'excel', 'word', 'powerpoint', 'google sheets', 'google docs', 'tally', 'sap', 'oracle', 'quickbooks',
+      'sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'elasticsearch',
+      'python', 'javascript', 'typescript', 'java', 'c\\+\\+', 'c#', 'ruby', 'go', 'rust', 'php', 'swift', 'kotlin',
+      'react', 'angular', 'vue', 'node', 'express', 'django', 'flask', 'spring', 'laravel', 'rails',
+      'html', 'css', 'sass', 'less', 'bootstrap', 'tailwind',
+      'autocad', 'solidworks', 'photoshop', 'illustrator', 'figma', 'canva', 'sketch', 'xd', 'invision',
+      'tableau', 'power bi', 'looker', 'metabase',
+      'jira', 'confluence', 'asana', 'trello', 'monday', 'notion',
+      'slack', 'zoom', 'teams', 'discord',
+      'salesforce', 'hubspot', 'zoho', 'marketo', 'mailchimp',
+      'erp', 'crm', 'ms office', 'ms project', 'outlook', 'sharepoint', 'onedrive',
+      'github', 'gitlab', 'bitbucket', 'git', 'svn',
+      'linux', 'ubuntu', 'centos', 'windows server', 'macos',
+      'aws', 'azure', 'gcp', 'google cloud', 'heroku', 'digitalocean', 'vercel', 'netlify',
+      'docker', 'kubernetes', 'terraform', 'ansible', 'jenkins', 'circleci', 'travis',
+      'matlab', 'r studio', 'spss', 'stata', 'sas',
+      'hadoop', 'spark', 'kafka', 'airflow',
+      'tensorflow', 'pytorch', 'keras', 'scikit-learn', 'pandas', 'numpy', 'opencv',
+      'selenium', 'cypress', 'jest', 'mocha', 'junit', 'pytest',
+      'postman', 'swagger', 'graphql', 'rest api', 'soap',
+      'wordpress', 'shopify', 'magento', 'drupal', 'wix', 'squarespace'
+    ];
+
+    toolPatterns.forEach(t => {
+      const regex = new RegExp(`\\b${t}\\b`, 'i');
+      if (regex.test(lower)) {
+        result.tools.push(t.replace('\\+\\+', '++'));
+      }
+    });
+
+    // Skills extraction
+    const skillPatterns = [
+      'data entry', 'data analysis', 'data management', 'data validation', 'data visualization', 'data modeling',
+      'database', 'reporting', 'analytics', 'business intelligence',
+      'customer service', 'customer support', 'client relations', 'account management',
+      'communication', 'written communication', 'verbal communication', 'presentation',
+      'team management', 'team leadership', 'people management', 'mentoring', 'coaching',
+      'project management', 'program management', 'product management', 'agile', 'scrum', 'kanban', 'waterfall',
+      'leadership', 'strategic planning', 'decision making', 'critical thinking',
+      'problem solving', 'troubleshooting', 'debugging', 'root cause analysis',
+      'time management', 'prioritization', 'multitasking', 'organization',
+      'attention to detail', 'accuracy', 'quality assurance', 'quality control',
+      'documentation', 'technical writing', 'process documentation',
+      'filing', 'record keeping', 'scheduling', 'calendar management',
+      'procurement', 'vendor management', 'inventory management', 'supply chain',
+      'accounting', 'bookkeeping', 'finance', 'financial analysis', 'budgeting', 'forecasting',
+      'auditing', 'compliance', 'risk management', 'internal controls',
+      'payroll', 'billing', 'invoicing', 'accounts payable', 'accounts receivable',
+      'marketing', 'digital marketing', 'content marketing', 'email marketing',
+      'social media', 'seo', 'sem', 'ppc', 'google ads', 'facebook ads',
+      'content creation', 'copywriting', 'branding', 'campaign management',
+      'design', 'graphic design', 'ui design', 'ux design', 'web design',
+      'software development', 'web development', 'mobile development', 'full stack', 'frontend', 'backend',
+      'testing', 'qa', 'automation testing', 'manual testing', 'unit testing', 'integration testing',
+      'deployment', 'ci/cd', 'devops', 'cloud computing', 'infrastructure',
+      'sales', 'business development', 'lead generation', 'negotiation', 'closing',
+      'research', 'market research', 'competitive analysis', 'user research',
+      'writing', 'editing', 'proofreading', 'translation', 'transcription',
+      'teaching', 'training', 'curriculum development', 'instructional design',
+      'healthcare', 'nursing', 'clinical', 'patient care', 'medical coding',
+      'logistics', 'warehouse management', 'shipping', 'distribution', 'coordination',
+      'machine learning', 'deep learning', 'artificial intelligence', 'nlp', 'computer vision',
+      'cybersecurity', 'network security', 'penetration testing', 'encryption',
+      'networking', 'system administration', 'it support', 'helpdesk'
+    ];
+
+    skillPatterns.forEach(s => {
+      if (lower.includes(s)) {
+        result.skills.push(s);
+      }
+    });
+
+    // Extract job titles
+    const titlePatterns = [
+      'software engineer', 'senior software engineer', 'staff engineer', 'principal engineer',
+      'frontend developer', 'backend developer', 'full stack developer', 'web developer',
+      'data scientist', 'data analyst', 'data engineer', 'ml engineer', 'ai engineer',
+      'product manager', 'project manager', 'program manager', 'scrum master',
+      'designer', 'ui designer', 'ux designer', 'graphic designer', 'product designer',
+      'marketing manager', 'marketing specialist', 'digital marketer', 'content manager',
+      'sales manager', 'sales representative', 'account executive', 'business development',
+      'hr manager', 'recruiter', 'talent acquisition',
+      'accountant', 'financial analyst', 'controller', 'cfo',
+      'operations manager', 'operations analyst', 'business analyst',
+      'customer success', 'support specialist', 'technical support',
+      'qa engineer', 'test engineer', 'automation engineer',
+      'devops engineer', 'site reliability engineer', 'cloud engineer',
+      'network engineer', 'system administrator', 'it manager',
+      'ceo', 'cto', 'coo', 'vp', 'director', 'manager', 'lead', 'senior', 'junior', 'intern'
+    ];
+
+    titlePatterns.forEach(t => {
+      if (lower.includes(t)) {
+        result.jobTitles.push(t);
+      }
+    });
+
+    // Extract company names (basic approach - look for patterns)
+    const companyPatterns = lower.match(/(?:at|with|for|worked at|employed by|joined)\s+([A-Z][a-zA-Z0-9\s&]+(?:Inc|LLC|Corp|Ltd|Company|Co)?)/gi);
+    if (companyPatterns) {
+      companyPatterns.forEach(match => {
+        const company = match.replace(/^(at|with|for|worked at|employed by|joined)\s+/i, '').trim();
+        if (company.length > 2 && company.length < 50) {
+          result.companies.push(company);
+        }
+      });
+    }
+
+    // Extract achievements with numbers
+    const achievementPatterns = [
+      /(?:increased|improved|reduced|saved|generated|achieved|delivered|managed|led|grew|boosted|cut|decreased)\s+[^.]*?\d+[%$kKmM]?[^.]*?/gi,
+      /\d+[%$kKmM]?\s+(?:increase|improvement|reduction|savings|growth|revenue|users|customers|clients)/gi
+    ];
+
+    achievementPatterns.forEach(pattern => {
+      const matches = text.match(pattern);
+      if (matches) {
+        result.achievements.push(...matches.map(m => m.trim()));
+      }
+    });
+
+    // Extract education
+    const eduPatterns = ['bachelor', 'master', 'phd', 'doctorate', 'mba', 'b.sc', 'b.tech', 'm.sc', 'm.tech', 'bba', 'bca', 'mca', 'diploma', 'associate degree', 'high school'];
+    eduPatterns.forEach(e => {
+      if (lower.includes(e)) {
+        result.education.push(e);
+      }
+    });
+
+    // Extract certifications
+    const certPatterns = ['certified', 'certification', 'aws certified', 'google certified', 'microsoft certified', 'pmp', 'cpa', 'cfa', 'cissp', 'comptia', 'scrum master', 'six sigma'];
+    certPatterns.forEach(c => {
+      if (lower.includes(c)) {
+        result.certifications.push(c);
+      }
+    });
+
+    return result;
+  }
+
+  function parseJDDeep(text) {
+    const lower = text.toLowerCase();
+    const result = {
+      requiredSkills: [],
+      preferredSkills: [],
+      tools: [],
+      experience: null,
+      education: [],
+      responsibilities: [],
+      keywords: []
+    };
+
+    // Reuse tool extraction
+    const toolPatterns = [
+      'excel', 'word', 'powerpoint', 'google sheets', 'sql', 'python', 'javascript', 'java', 'react', 'angular', 'vue', 'node',
+      'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'git', 'github', 'jira', 'confluence', 'salesforce', 'hubspot',
+      'tableau', 'power bi', 'figma', 'photoshop', 'illustrator', 'autocad', 'sap', 'oracle', 'mongodb', 'postgresql',
+      'tensorflow', 'pytorch', 'pandas', 'numpy', 'selenium', 'postman', 'jenkins', 'terraform', 'ansible'
+    ];
+
+    toolPatterns.forEach(t => {
+      const regex = new RegExp(`\\b${t}\\b`, 'i');
+      if (regex.test(lower)) {
+        result.tools.push(t);
+      }
+    });
+
+    // Skills from JD
+    const skillPatterns = [
+      'data entry', 'data analysis', 'communication', 'team management', 'project management', 'problem solving',
+      'customer service', 'leadership', 'agile', 'scrum', 'attention to detail', 'time management',
+      'software development', 'testing', 'qa', 'devops', 'cloud', 'machine learning', 'sales', 'marketing',
+      'accounting', 'finance', 'documentation', 'reporting', 'analytics', 'research'
+    ];
+
+    skillPatterns.forEach(s => {
+      if (lower.includes(s)) {
+        result.requiredSkills.push(s);
+      }
+    });
+
+    // Extract experience requirements
+    const expMatch = lower.match(/(\d+)\+?\s*(?:years?|yrs?)\s*(?:of\s*)?(?:experience|exp)/);
+    if (expMatch) {
+      result.experience = parseInt(expMatch[1], 10);
+    }
+
+    // Education requirements
+    const eduPatterns = ['bachelor', 'master', 'phd', 'degree', 'mba', 'b.sc', 'b.tech'];
+    eduPatterns.forEach(e => {
+      if (lower.includes(e)) {
+        result.education.push(e);
+      }
+    });
+
+    // Extract action verbs indicating responsibilities
+    const respPatterns = lower.match(/(?:will\s+)?(?:be responsible for|manage|develop|create|analyze|design|implement|maintain|support|collaborate|coordinate|lead|drive|ensure|optimize|build|deliver)\s+[^.]+/gi);
+    if (respPatterns) {
+      result.responsibilities = respPatterns.slice(0, 10);
+    }
+
+    return result;
+  }
+
+  // ============================================================
+  // SMART QUESTION GENERATOR
+  // ============================================================
+  function generateSmartQuestions(resume, jd, role, count) {
+    const resumeData = parseResumeDeep(resume);
+    const jdData = parseJDDeep(jd);
+
+    session.parsedResume = resumeData;
+    session.parsedJD = jdData;
+
+    // Find overlaps (high relevance)
+    const sharedTools = resumeData.tools.filter(t => jdData.tools.includes(t));
+    const sharedSkills = resumeData.skills.filter(s => jdData.requiredSkills.includes(s));
+    const allTools = [...new Set([...sharedTools, ...jdData.tools, ...resumeData.tools])];
+    const allSkills = [...new Set([...sharedSkills, ...jdData.requiredSkills, ...resumeData.skills])];
+
+    const questions = [];
+    const types = [];
+
+    // ---- BEHAVIORAL QUESTIONS ----
+    const behavioral = [];
+
+    if (sharedSkills.length > 0) {
+      behavioral.push(`Your resume mentions ${sharedSkills[0]}, which is also a key requirement for this ${role} position. Tell me about a specific situation where you applied this skill to solve a challenging problem. What was the outcome?`);
+    }
+
+    if (resumeData.achievements.length > 0) {
+      behavioral.push(`I see you've achieved significant results in your past roles. Can you walk me through one of your biggest achievements? Specifically, what was your role, what actions did you take, and how did you measure success?`);
+    }
+
+    if (resumeData.companies.length > 0) {
+      behavioral.push(`Tell me about your experience at ${resumeData.companies[0] || 'your previous company'}. What was your most challenging project there, and how did you handle it?`);
+    }
+
+    behavioral.push(`Describe a time when you had to work under a tight deadline. How did you prioritize your tasks and ensure quality wasn't compromised?`);
+    behavioral.push(`Tell me about a situation where you had a disagreement with a colleague or supervisor. How did you resolve it while maintaining a professional relationship?`);
+
+    // ---- TECHNICAL QUESTIONS ----
+    const technical = [];
+
+    if (sharedTools.length > 0) {
+      technical.push(`The job description specifically requires ${sharedTools[0]}, which you've listed on your resume. Describe the most complex project or task you've completed using ${sharedTools[0]}. What challenges did you face?`);
+    }
+
+    if (allTools.length > 1) {
+      const tool = allTools[1] || allTools[0];
+      technical.push(`How would you rate your proficiency with ${tool} on a scale of 1-10? Please justify your rating with a specific example of how you've used it.`);
+    }
+
+    if (jdData.requiredSkills.includes('data entry') || role.toLowerCase().includes('data')) {
+      technical.push(`For data-intensive roles like this ${role} position, accuracy is critical. What specific techniques or processes do you use to ensure data accuracy and catch errors before they become problems?`);
+    }
+
+    if (resumeData.tools.includes('sql') || jdData.tools.includes('sql')) {
+      technical.push(`Walk me through how you would write a SQL query to find duplicate records in a customer database and identify which records to keep based on the most recent activity date.`);
+    }
+
+    if (allSkills.includes('project management') || allSkills.includes('agile')) {
+      technical.push(`Describe your experience with project management methodologies. How have you applied ${allSkills.includes('agile') ? 'Agile/Scrum' : 'project management'} principles in a real project?`);
+    }
+
+    technical.push(`What tools and technologies are you currently most comfortable with, and which ones from this job description would you need to learn? What's your approach to learning new technologies?`);
+
+    // ---- SITUATIONAL QUESTIONS ----
+    const situational = [];
+
+    situational.push(`Imagine you're two hours from a critical deadline and you discover a significant error in work that's already been submitted. Walk me through exactly what steps you would take.`);
+
+    if (jd.toLowerCase().includes('fast-paced') || jd.toLowerCase().includes('dynamic')) {
+      situational.push(`This ${role} role operates in a fast-paced environment. If you received conflicting priorities from two different managers at the same time, how would you handle the situation?`);
+    }
+
+    situational.push(`If you were assigned a task completely outside your expertise with no training materials available, how would you approach getting up to speed quickly while still delivering quality work?`);
+
+    situational.push(`You notice a teammate consistently making the same mistake that affects the team's output. How would you address this without damaging your working relationship?`);
+
+    // ---- EXPERIENCE QUESTIONS ----
+    const experience = [];
+
+    if (resumeData.yearsExp) {
+      experience.push(`With ${resumeData.yearsExp} years of experience, how has your approach to ${resumeData.skills[0] || 'your work'} evolved over time? What's the most valuable lesson you've learned?`);
+    } else {
+      experience.push(`Based on your background, what specific experiences have prepared you for the responsibilities outlined in this ${role} job description?`);
+    }
+
+    if (resumeData.education.length > 0) {
+      experience.push(`How has your ${resumeData.education[0]} education directly contributed to your professional capabilities? Can you give a specific example?`);
+    }
+
+    if (resumeData.jobTitles.length > 0) {
+      experience.push(`Looking at your progression from ${resumeData.jobTitles[0]} to your current role, what key skills have you developed along the way?`);
+    }
+
+    experience.push(`Looking at this job description, which requirement do you feel most confident about, and which one might require the steepest learning curve for you?`);
+
+    // ---- ROLE FIT QUESTIONS ----
+    const rolefit = [];
+
+    rolefit.push(`Why are you specifically interested in this ${role} position at this point in your career? What does it offer that your current or previous roles haven't?`);
+    rolefit.push(`Where do you see yourself professionally in 2-3 years, and how does this ${role} role fit into that trajectory?`);
+    rolefit.push(`Based on what you know about this role, what do you think will be your biggest contribution in the first 90 days?`);
+
+    // ---- BUILD FINAL QUESTION LIST ----
+    const pool = [
+      { q: behavioral[0], type: 'behavioral' },
+      { q: technical[0], type: 'technical' },
+      { q: situational[0], type: 'situational' },
+      { q: experience[0], type: 'experience' },
+      { q: rolefit[0], type: 'rolefit' },
+      { q: behavioral[1] || behavioral[0], type: 'behavioral' },
+      { q: technical[1] || technical[0], type: 'technical' },
+      { q: situational[1] || situational[0], type: 'situational' },
+      { q: technical[2] || technical[0], type: 'technical' },
+      { q: experience[1] || experience[0], type: 'experience' }
+    ];
+
+    const seen = new Set();
+    const final = [];
+
+    for (const item of pool) {
+      if (item.q && !seen.has(item.q) && final.length < count) {
+        seen.add(item.q);
+        final.push(item);
+      }
+    }
+
+    // Fill remaining slots if needed
+    const fillers = [...behavioral, ...technical, ...situational, ...experience, ...rolefit];
+    for (const q of fillers) {
+      if (q && !seen.has(q) && final.length < count) {
+        seen.add(q);
+        final.push({ q, type: 'technical' });
+      }
+    }
+
+    session.questionTypes = final.map(f => f.type);
+    return final.map(f => f.q);
+  }
+
+  // ============================================================
+  // SETUP EVENT HANDLERS
+  // ============================================================
+  $('tab-text').addEventListener('click', () => switchResumeTab('text'));
+  $('tab-upload').addEventListener('click', () => switchResumeTab('upload'));
+
+  function switchResumeTab(tab) {
+    $('tab-text').classList.toggle('active', tab === 'text');
+    $('tab-upload').classList.toggle('active', tab === 'upload');
+    $('resume-text').style.display = tab === 'text' ? 'block' : 'none';
+    $('resume-upload-area').style.display = tab === 'upload' ? 'block' : 'none';
+  }
+
+  $('resume-upload-area').addEventListener('click', () => {
+    $('resume-file').click();
+  });
+
+  $('resume-file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    $('file-chosen-label').textContent = `📄 ${file.name}`;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      $('resume-text').value = evt.target.result;
+    };
+    reader.onerror = () => {
+      showToast("Error reading file. Please try pasting the text directly.");
+    };
+    reader.readAsText(file);
+  });
+
+  $('open-modes-btn').addEventListener('click', () => {
+    const resume = $('resume-text').value.trim();
+    const jd = $('jd-input').value.trim();
+
+    if (!resume) {
+      showToast("Please paste or upload your resume first.");
+      return;
+    }
+    if (resume.length < 100) {
+      showToast("Your resume seems too short. Please provide more details.");
+      return;
+    }
+    if (!jd) {
+      showToast("Please paste the Job Description.");
+      return;
+    }
+    if (jd.length < 50) {
+      showToast("The Job Description seems too short. Please provide more details.");
+      return;
+    }
+
+    toggleModal(true);
+  });
+
+  $('cancel-mode-btn').addEventListener('click', () => toggleModal(false));
+
+  // Mode card selection
+  document.querySelectorAll('.mode-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const mode = card.dataset.mode;
+      if (mode) {
+        selectInterviewMode(mode);
+      }
+    });
+  });
+
+  function toggleModal(show) {
+    $('mode-modal').classList.toggle('active', show);
+  }
+
+  // ============================================================
+  // INTERVIEW INITIALIZATION
+  // ============================================================
+  function selectInterviewMode(mode) {
+    config.mode = mode;
+    toggleModal(false);
+    initializeInterviewEngine();
+  }
+
+  async function initializeInterviewEngine() {
+    config.resume = $('resume-text').value.trim();
+    config.jd = $('jd-input').value.trim();
+    config.role = $('role-input').value.trim() || "Professional";
+    config.totalQuestions = parseInt($('num-q-input').value, 10);
+    config.timeLimit = parseInt($('time-limit-input').value, 10);
+
+    showLoading(true, "Analyzing your resume and JD to generate tailored questions...");
+
+    // Load voices early for voice modes
+    if (config.mode !== 'text') {
+      await loadVoices();
+    }
+
+    await new Promise(r => setTimeout(r, 1500));
+
+    try {
+      session.questions = generateSmartQuestions(config.resume, config.jd, config.role, config.totalQuestions);
+      session.answers = [];
+      session.currentIndex = 0;
+
+      if (session.questions.length === 0) {
+        throw new Error("Could not generate questions. Please ensure your resume and JD contain enough detail.");
+      }
+
+      $('sidebar-role-badge').textContent = config.role;
+      $('sidebar-mode-badge').textContent = config.mode === 'text' ? 'TEXT' : config.mode === 'voice-text' ? 'VOICE+TYPE' : 'VOICE ONLY';
+      $('chat-container').innerHTML = '';
+      $('history-container').innerHTML = '';
+
+      configureLayoutControls();
+      showLoading(false);
+      showScreen('interview-screen');
+
+      // Welcome message
+      if (config.mode !== 'text') {
+        const welcome = `Welcome to your ${config.role} interview. I will ask you ${config.totalQuestions} tailored questions based on your resume and the job requirements. Please answer each one clearly and thoroughly. Let's begin.`;
+        speakText(welcome, () => {
+          setTimeout(presentQuestionLoop, 500);
+        });
+      } else {
+        presentQuestionLoop();
+      }
+    } catch (err) {
+      showLoading(false);
+      showToast("Error: " + err.message);
+      console.error(err);
+    }
+  }
+
+  function configureLayoutControls() {
+    const txtLayout = $('text-input-layout');
+    const voiceLayout = $('voice-input-layout');
+    const hint = $('input-mode-hint-text');
+
+    if (config.mode === 'text') {
+      txtLayout.style.display = "flex";
+      voiceLayout.style.display = "none";
+      hint.textContent = "Press Enter to submit your answer";
+      $('ai-speaking-bar').style.display = 'none';
+    } else {
+      txtLayout.style.display = "none";
+      voiceLayout.style.display = "flex";
+      $('voice-submit-btn').style.display = config.mode === 'voice-text' ? 'flex' : 'none';
+      hint.textContent = config.mode === 'voice-text'
+        ? "AI speaks → click mic → speak → review → submit"
+        : "Hands-free: AI speaks → you speak → auto-submits";
+      initWebSpeechRecognition();
+    }
+  }
+
+  // ============================================================
+  // SPEECH RECOGNITION
+  // ============================================================
+  function initWebSpeechRecognition() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      showToast("Speech recognition not supported. Switching to text mode.");
+      config.mode = 'text';
+      configureLayoutControls();
+      return;
+    }
+
+    speechRecognition = new SR();
+    speechRecognition.continuous = true;
+    speechRecognition.interimResults = true;
+    speechRecognition.lang = 'en-US';
+
+    speechRecognition.onresult = (event) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          spokenBuffer += event.results[i][0].transcript + ' ';
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      const cur = (spokenBuffer + interim).trim();
+      $('voice-status-text').textContent = cur || "Listening... speak now.";
+      $('char-count').textContent = `${cur.length} chars`;
+    };
+
+    speechRecognition.onerror = (e) => {
+      console.warn("Speech error:", e.error);
+      if (e.error !== 'no-speech') {
+        stopVoice();
+      }
+    };
+
+    speechRecognition.onend = () => {
+      if (isListening) {
+        // Auto-restart for continuous listening
+        try {
+          speechRecognition.start();
+        } catch (e) {
+          console.warn("Could not restart speech recognition:", e);
+        }
+      }
+    };
+  }
+
+  $('mic-toggle-btn').addEventListener('click', () => {
+    if (isSpeaking) {
+      showToast("Please wait for the AI to finish speaking.");
+      return;
+    }
+    if (!isListening) {
+      startVoice();
+    } else {
+      stopVoice();
+      if (config.mode === 'voice-speaking') {
+        const text = spokenBuffer.trim() || "No audio input captured.";
+        executeResponsePayloadSubmission(text);
+      }
+    }
+  });
+
+  $('voice-submit-btn').addEventListener('click', () => {
+    stopVoice();
+    const text = spokenBuffer.trim();
+    if (text && text !== "Waiting for AI to finish speaking..." && text !== "Click mic to record your response...") {
+      executeResponsePayloadSubmission(text);
+    } else {
+      showToast("Please record your response first.");
+    }
+  });
+
+  function startVoice() {
+    if (!speechRecognition) {
+      showToast("Speech recognition not available.");
+      return;
+    }
+    isListening = true;
+    spokenBuffer = "";
+    $('mic-toggle-btn').classList.add('listening');
+    $('voice-status-text').textContent = "Listening... speak now.";
+    try {
+      speechRecognition.start();
+    } catch (e) {
+      console.warn("Could not start speech recognition:", e);
+    }
+  }
+
+  function stopVoice() {
+    if (!speechRecognition || !isListening) return;
+    isListening = false;
+    $('mic-toggle-btn').classList.remove('listening');
+    try {
+      speechRecognition.stop();
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  // ============================================================
+  // INTERVIEW FLOW
+  // ============================================================
+  const typeTagMeta = {
+    behavioral: { label: 'Behavioral', cls: 'rgba(245,158,11,.12)', color: 'var(--warn)' },
+    technical: { label: 'Technical', cls: 'rgba(0,212,255,.12)', color: 'var(--accent)' },
+    situational: { label: 'Situational', cls: 'rgba(124,58,237,.12)', color: '#a78bfa' },
+    experience: { label: 'Experience', cls: 'rgba(16,185,129,.12)', color: 'var(--accent3)' },
+    rolefit: { label: 'Role Fit', cls: 'rgba(239,68,68,.12)', color: 'var(--danger)' }
+  };
+
+  function presentQuestionLoop() {
+    const idx = session.currentIndex;
+    const question = session.questions[idx];
+    const qType = session.questionTypes[idx] || 'technical';
+
+    $('q-counter-display').textContent = `Question ${idx + 1} of ${config.totalQuestions}`;
+    $('interview-progress').style.width = `${((idx + 1) / config.totalQuestions) * 100}%`;
+
+    appendChatUI("ai", question, qType);
+
+    if (config.mode === 'voice-text' || config.mode === 'voice-speaking') {
+      $('voice-status-text').textContent = "AI is asking the question...";
+      $('mic-toggle-btn').disabled = true;
+
+      const prefix = `Question ${idx + 1}. `;
+      speakText(prefix + question, () => {
+        $('mic-toggle-btn').disabled = false;
+        $('voice-status-text').textContent = config.mode === 'voice-speaking'
+          ? "Now listening — speak your answer..."
+          : "Click the mic to record your answer.";
+
+        if (config.mode === 'voice-speaking') {
+          setTimeout(startVoice, 400);
+        }
+        runAssessmentCountdown();
+      });
+    } else {
+      $('answer-input').focus();
+      runAssessmentCountdown();
+    }
+  }
+
+  function runAssessmentCountdown() {
+    clearInterval(session.timerInterval);
+    session.timeLeft = config.timeLimit;
+    updateCountdownDisplay();
+
+    session.timerInterval = setInterval(() => {
+      session.timeLeft--;
+      updateCountdownDisplay();
+      if (session.timeLeft <= 0) {
+        clearInterval(session.timerInterval);
+        stopVoice();
+        stopSpeaking();
+        showToast("Time expired!");
+        const text = config.mode === 'text'
+          ? $('answer-input').value.trim() || "No response provided within the time limit."
+          : spokenBuffer.trim() || "No response provided within the time limit.";
+        executeResponsePayloadSubmission(text);
+      }
+    }, 1000);
+  }
+
+  function updateCountdownDisplay() {
+    const m = Math.floor(session.timeLeft / 60).toString().padStart(2, '0');
+    const s = (session.timeLeft % 60).toString().padStart(2, '0');
+    $('timer-display').textContent = `${m}:${s}`;
+    const dot = $('timer-dot');
+    dot.className = "timer-dot" + (session.timeLeft < 30 ? " danger" : session.timeLeft < 60 ? " warn" : "");
+  }
+
+  function appendChatUI(sender, text, qType = null) {
+    const c = $('chat-container');
+    const div = document.createElement('div');
+    div.className = `msg ${sender}`;
+    const meta = qType && typeTagMeta[qType] ? typeTagMeta[qType] : null;
+    const tagHTML = meta
+      ? `<div class="q-type-tag" style="background:${meta.cls};color:${meta.color}">${meta.label}</div>`
+      : '';
+    div.innerHTML = `
+      <div class="avatar ${sender === 'ai' ? 'ai-av' : 'user-av'}">${sender === 'ai' ? 'AI' : 'ME'}</div>
+      <div class="bubble">${tagHTML}<div>${escapeHTML(text)}</div></div>
+    `;
+    c.appendChild(div);
+    c.scrollTop = c.scrollHeight;
+  }
+
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  $('send-btn').addEventListener('click', submitTextResponse);
+  $('answer-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitTextResponse();
+    }
+  });
+  $('answer-input').addEventListener('input', e => {
+    $('char-count').textContent = `${e.target.value.length} chars`;
+  });
+
+  function submitTextResponse() {
+    const el = $('answer-input');
+    const txt = el.value.trim();
+    if (!txt) {
+      showToast("Please type your response before submitting.");
+      return;
+    }
+    el.value = "";
+    $('char-count').textContent = "0 chars";
+    executeResponsePayloadSubmission(txt);
+  }
+
+  function executeResponsePayloadSubmission(answer) {
+    clearInterval(session.timerInterval);
+    stopVoice();
+
+    const idx = session.currentIndex;
+    session.answers.push({
+      question: session.questions[idx],
+      type: session.questionTypes[idx],
+      candidate_answer: answer
+    });
+    appendChatUI("user", answer);
+
+    // Update history
+    const h = $('history-container');
+    const item = document.createElement('div');
+    item.className = "q-hist-item";
+    const shortQ = session.questions[idx].length > 40
+      ? session.questions[idx].substring(0, 40) + '...'
+      : session.questions[idx];
+    item.innerHTML = `<span class="num">Q${idx + 1}</span><span class="qt">${escapeHTML(shortQ)}</span>`;
+    h.appendChild(item);
+
+    session.currentIndex++;
+
+    if (session.currentIndex < config.totalQuestions) {
+      if (config.mode !== 'text') {
+        const acks = ["Thank you.", "Got it.", "Understood.", "Noted.", "Good, next question."];
+        const ack = acks[Math.floor(Math.random() * acks.length)];
+        setTimeout(() => {
+          speakText(ack, () => {
+            setTimeout(presentQuestionLoop, 300);
+          });
+        }, 400);
+      } else {
+        setTimeout(presentQuestionLoop, 600);
+      }
+    } else {
+      if (config.mode !== 'text') {
+        speakText("Thank you for completing all the questions. Please wait while I evaluate your responses.", () => {
+          setTimeout(compileResults, 800);
+        });
+      } else {
+        setTimeout(compileResults, 800);
+      }
+    }
+  }
+
+  // ============================================================
+  // EVALUATION ENGINE
+  // ============================================================
+  function scoreAnswer(answer, question, qType, resume, jd) {
+    const ans = answer.toLowerCase().trim();
+    const resumeData = session.parsedResume || parseResumeDeep(resume);
+    const jdData = session.parsedJD || parseJDDeep(jd);
+
+    // No response penalty
+    if (ans.length < 20 ||
+        ans === "no response provided within the time limit." ||
+        ans === "no response provided." ||
+        ans === "no audio input captured.") {
+      return {
+        score: 0,
+        feedback: "No meaningful response was provided. Always attempt an answer, even if uncertain—interviewers value effort and thought process."
+      };
+    }
+
+    let score = 0;
+    const feedbackParts = [];
+
+    // Length & substance (max 5 pts)
+    if (ans.length > 500) { score += 5; }
+    else if (ans.length > 300) { score += 4; }
+    else if (ans.length > 150) { score += 3; }
+    else if (ans.length > 80) { score += 2; }
+    else { score += 1; feedbackParts.push("Your response was brief. Consider elaborating with specific context, actions, and measurable results."); }
+
+    // Keyword relevance (max 6 pts)
+    const relevantTerms = [...new Set([...jdData.tools, ...jdData.requiredSkills, ...resumeData.tools, ...resumeData.skills])];
+    const matchedTerms = relevantTerms.filter(t => ans.includes(t.toLowerCase()));
+    const kwScore = Math.min(6, matchedTerms.length * 1.5);
+    score += kwScore;
+
+    if (matchedTerms.length === 0) {
+      feedbackParts.push("Your answer didn't reference specific tools or skills from your resume or the job requirements. Weave in relevant keywords.");
+    } else if (matchedTerms.length >= 2) {
+      feedbackParts.push(`Good use of relevant terms: ${matchedTerms.slice(0, 3).join(', ')}.`);
+    }
+
+    // Structure signals (max 4 pts)
+    const structureSignals = ['first', 'then', 'after', 'finally', 'because', 'result', 'outcome', 'achieved', 'specifically', 'for example', 'in this case', 'i decided', 'i used', 'i managed', 'we implemented', 'my role', 'the challenge', 'the solution'];
+    const structureHits = structureSignals.filter(s => ans.includes(s)).length;
+    score += Math.min(4, structureHits);
+
+    if (structureHits < 2) {
+      feedbackParts.push("Structure your response clearly—use the STAR method: Situation → Task → Action → Result.");
+    }
+
+    // Type-specific scoring (max 5 pts)
+    if (qType === 'behavioral') {
+      const starWords = ['situation', 'task', 'action', 'result', 'example', 'time when', 'challenge', 'achieved', 'resolved', 'learned'];
+      const starHits = starWords.filter(w => ans.includes(w)).length;
+      score += Math.min(5, starHits * 1.5);
+      if (starHits < 2) feedbackParts.push("Behavioral questions require specific past examples. Avoid hypotheticals—tell a real story.");
+    } else if (qType === 'technical') {
+      const techHits = matchedTerms.length;
+      score += Math.min(5, techHits * 1.5);
+      if (techHits < 1) feedbackParts.push("For technical questions, name specific tools, technologies, or methodologies you've used.");
+    } else if (qType === 'situational') {
+      const situWords = ['would', 'plan', 'step', 'approach', 'ensure', 'consider', 'priority', 'communicate', 'first', 'then'];
+      const situHits = situWords.filter(w => ans.includes(w)).length;
+      score += Math.min(5, situHits);
+      if (situHits < 2) feedbackParts.push("Show your thought process with clear steps you would take to handle the situation.");
+    } else if (qType === 'experience') {
+      const expWords = ['years', 'project', 'company', 'team', 'role', 'learned', 'growth', 'achieved', 'managed', 'led', 'built', 'developed', 'improved'];
+      const expHits = expWords.filter(w => ans.includes(w)).length;
+      score += Math.min(5, expHits);
+    } else if (qType === 'rolefit') {
+      const fitWords = ['career', 'goal', 'growth', 'align', 'interest', 'passion', 'fit', 'opportunity', 'contribute', 'value', 'excited', 'motivated'];
+      const fitHits = fitWords.filter(w => ans.includes(w)).length;
+      score += Math.min(5, fitHits);
+      if (fitHits < 2) feedbackParts.push("Connect your personal goals to this specific role and company. Show genuine enthusiasm.");
+    }
+
+    score = Math.min(20, Math.max(0, Math.round(score)));
+
+    const feedback = feedbackParts.length > 0
+      ? feedbackParts.join(' ')
+      : "Strong answer with good structure and relevant content. Continue to quantify achievements where possible.";
+
+    return { score, feedback };
+  }
+
+  function compileResults() {
+    showLoading(true, "Evaluating your responses...");
+
+    setTimeout(() => {
+      let totalScore = 0;
+      let totalAlignment = 0, totalDepth = 0, totalClarity = 0;
+      const breakdown = [];
+
+      session.answers.forEach((entry) => {
+        const { score, feedback } = scoreAnswer(entry.candidate_answer, entry.question, entry.type, config.resume, config.jd);
+        totalScore += score;
+        totalAlignment += (score / 20) * 100;
+        totalDepth += entry.candidate_answer.length > 300 ? 85 : entry.candidate_answer.length > 100 ? 60 : 30;
+        totalClarity += score > 14 ? 90 : score > 8 ? 65 : 40;
+        breakdown.push({ ...entry, score, feedback });
+      });
+
+      const count = session.answers.length;
+      const finalScore = Math.round((totalScore / (count * 20)) * 100);
+      const alignment = Math.round(totalAlignment / count);
+      const relevance = Math.round(Math.min(100, alignment * 1.05));
+      const depth = Math.round(totalDepth / count);
+      const clarity = Math.round(totalClarity / count);
+
+      // Overall feedback
+      let overallFeedback = '';
+      if (finalScore >= 75) {
+        overallFeedback = `Excellent performance! Your answers demonstrated strong domain knowledge, relevant experience, and effective use of specific examples. You consistently connected your responses to the ${config.role} requirements. To reach the top tier, focus on quantifying achievements with numbers and timelines.`;
+      } else if (finalScore >= 50) {
+        overallFeedback = `Solid performance with room for improvement. You showed awareness of the role requirements, but some answers lacked depth or concrete examples. For ${config.role} interviews, prepare detailed stories using the STAR method and reference specific tools and skills from the job description.`;
+      } else {
+        overallFeedback = `Your responses need significant improvement. Many answers were either too brief or didn't directly address the questions. Before your next interview for a ${config.role} role: (1) Prepare 5-7 detailed stories from your experience, (2) Study the job description and practice connecting your background to each requirement, (3) Use the STAR method to structure every response.`;
+      }
+
+      // Render results
+      $('final-score-big').textContent = finalScore;
+
+      // Calculate stroke-dashoffset (circumference = 2 * PI * 65 ≈ 408)
+      const circumference = 408;
+      const offset = circumference - (circumference * finalScore / 100);
+      $('results-ring-fill').style.strokeDashoffset = offset;
+
+      const badge = $('readiness-badge');
+      if (finalScore >= 70) {
+        badge.className = "readiness-label rl-strong";
+        badge.textContent = "Strong Candidate";
+      } else if (finalScore >= 45) {
+        badge.className = "readiness-label rl-mid";
+        badge.textContent = "Developing Candidate";
+      } else {
+        badge.className = "readiness-label rl-improve";
+        badge.textContent = "Needs Preparation";
+      }
+
+      const setDim = (valId, barId, val) => {
+        $(valId).textContent = `${val}%`;
+        $(barId).style.width = `${val}%`;
+      };
+
+      setDim('dim-alignment-val', 'dim-alignment-bar', alignment);
+      setDim('dim-relevancy-val', 'dim-relevancy-bar', relevance);
+      setDim('dim-depth-val', 'dim-depth-bar', depth);
+      setDim('dim-clarity-val', 'dim-clarity-bar', clarity);
+
+      $('final-feedback-text').textContent = overallFeedback;
+
+      const list = $('qa-breakdown-list');
+      list.innerHTML = "";
+
+      breakdown.forEach((item, i) => {
+        const meta = typeTagMeta[item.type] || typeTagMeta.technical;
+        const scoreColor = item.score >= 14 ? 'var(--accent3)' : item.score >= 8 ? 'var(--warn)' : 'var(--danger)';
+        const card = document.createElement('div');
+        card.className = "qa-item";
+        card.innerHTML = `
+          <div class="qa-top">
+            <div class="qa-q">
+              <span class="score-tag" style="background:${meta.cls};color:${meta.color}">${meta.label}</span>
+              Q${i + 1}: ${escapeHTML(item.question)}
+            </div>
+            <div class="qa-score" style="color:${scoreColor}">${item.score}<span style="font-size:12px;color:var(--text3)">/20</span></div>
+          </div>
+          <div class="qa-a"><strong>Your Answer:</strong> ${escapeHTML(item.candidate_answer)}</div>
+          <div class="qa-fb">💬 ${escapeHTML(item.feedback)}</div>
+        `;
+        list.appendChild(card);
+      });
+
+      showLoading(false);
+      showScreen('results-screen');
+
+      // Speak summary for voice modes
+      if (config.mode !== 'text') {
+        const summary = finalScore >= 70
+          ? `Great job! You scored ${finalScore} out of 100. Your responses were strong and well-structured.`
+          : finalScore >= 45
+          ? `You scored ${finalScore} out of 100. A reasonable effort, but there's room to improve with more specific examples.`
+          : `You scored ${finalScore} out of 100. Focus on preparing detailed examples and connecting them to the job requirements.`;
+        setTimeout(() => speakText(summary), 600);
+      }
+    }, 1500);
+  }
+
+  // ============================================================
+  // UTILITIES
+  // ============================================================
+  function showLoading(show, msg = "Processing...") {
+    $('loading-text').textContent = msg;
+    $('loading-layer').classList.toggle('active', show);
+  }
+
+  function showToast(msg) {
+    const t = $('toast-notify');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+
+  $('restart-btn').addEventListener('click', resetApplication);
+
+  function resetApplication() {
+    clearInterval(session.timerInterval);
+    stopVoice();
+    stopSpeaking();
+    session.questions = [];
+    session.questionTypes = [];
+    session.answers = [];
+    session.currentIndex = 0;
+    session.parsedResume = null;
+    session.parsedJD = null;
+    spokenBuffer = "";
+    $('resume-text').value = "";
+    $('jd-input').value = "";
+    $('role-input').value = "";
+    $('file-chosen-label').textContent = "";
+    $('answer-input').value = "";
+    $('char-count').textContent = "0 chars";
+    showScreen('setup-screen');
+  }
+
+  // Initialize voices on load
+  loadVoices();
+
+})();
+</script>
+</body>
+</html>
